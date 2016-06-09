@@ -14,7 +14,7 @@
 package de.tschumacher.mandrillservice.configuration;
 
 
-public class MandrillConfig {
+public class MandrillServiceConfig {
 
   private final String mandrillKey;
   private final boolean isDebug;
@@ -46,7 +46,7 @@ public class MandrillConfig {
     return new Builder();
   }
 
-  private MandrillConfig(Builder builder) {
+  private MandrillServiceConfig(Builder builder) {
     this.mandrillKey = builder.mandrillKey;
     this.isDebug = builder.isDebug;
     this.debugMail = builder.debugMail;
@@ -87,8 +87,8 @@ public class MandrillConfig {
       return this;
     }
 
-    public MandrillConfig build() {
-      return new MandrillConfig(this);
+    public MandrillServiceConfig build() {
+      return new MandrillServiceConfig(this);
     }
   }
 

@@ -1,11 +1,11 @@
 /*
  * Copyright 2015 Tobias Schumacher
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,26 +25,26 @@ import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MergeVar;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage.Recipient;
 
-import de.tschumacher.mandrillservice.configuration.MandrillConfig;
+import de.tschumacher.mandrillservice.configuration.MandrillServiceConfig;
 import de.tschumacher.mandrillservice.domain.MandrillServiceMessage;
 import de.tschumacher.mandrillservice.exception.MandrillServiceException;
 
 
-public class DefaultMadrillService implements MandrillService {
+public class DefaultMandrillService implements MandrillService {
 
-  private final MandrillConfig config;
+  private final MandrillServiceConfig config;
   private final MandrillApi mandrillApi;
 
 
 
-  public DefaultMadrillService(final MandrillConfig config) {
+  public DefaultMandrillService(final MandrillServiceConfig config) {
     super();
     this.config = config;
     this.mandrillApi = new MandrillApi(config.getMandrillKey());
   }
 
   // for testing
-  public DefaultMadrillService(MandrillConfig config, MandrillApi mandrillApi) {
+  public DefaultMandrillService(MandrillServiceConfig config, MandrillApi mandrillApi) {
     super();
     this.config = config;
     this.mandrillApi = mandrillApi;
