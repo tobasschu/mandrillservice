@@ -13,42 +13,49 @@
  */
 package de.tschumacher.mandrillservice.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MandrillServiceMessage {
-  private final String email;
+  private final List<String> emails;
   private final String subject;
   private final Map<String, String> replacements;
   private final String template;
   private final String fromEmail;
   private final String fromName;
 
-  public String getEmail() {
-    return email;
+  public List<String> getEmails() {
+    return this.emails;
   }
 
   public String getSubject() {
-    return subject;
+    return this.subject;
   }
 
   public Map<String, String> getReplacements() {
-    return replacements;
+    return this.replacements;
   }
 
   public String getTemplate() {
-    return template;
+    return this.template;
   }
 
   public String getFromEmail() {
-    return fromEmail;
+    return this.fromEmail;
   }
 
   public String getFromName() {
-    return fromName;
+    return this.fromName;
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+
   private MandrillServiceMessage(Builder builder) {
-    this.email = builder.email;
+    this.emails = builder.emails;
     this.subject = builder.subject;
     this.replacements = builder.replacements;
     this.template = builder.template;
@@ -56,21 +63,23 @@ public class MandrillServiceMessage {
     this.fromName = builder.fromName;
   }
 
-  public static Builder newBuilder() {
-    return new Builder();
-  }
-
   public static class Builder {
 
-    private String email;
+    private List<String> emails;
     private String subject;
     private Map<String, String> replacements;
     private String template;
     private String fromEmail;
     private String fromName;
 
+    public Builder withEmails(List<String> emails) {
+      this.emails = emails;
+      return this;
+    }
+
     public Builder withEmail(String email) {
-      this.email = email;
+      this.emails = new ArrayList<String>();
+      this.emails.add(email);
       return this;
     }
 
@@ -103,6 +112,7 @@ public class MandrillServiceMessage {
       return new MandrillServiceMessage(this);
     }
   }
+
 
 
 }
