@@ -19,13 +19,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
+
+import com.google.common.io.Files;
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.model.MandrillApiError;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MergeVar;
+import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MessageContent;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage.Recipient;
 
 import de.tschumacher.mandrillservice.configuration.MandrillServiceConfig;
+import de.tschumacher.mandrillservice.domain.MandrillServiceAttachment;
 import de.tschumacher.mandrillservice.domain.MandrillServiceMessage;
 import de.tschumacher.mandrillservice.exception.MandrillServiceException;
 
@@ -53,10 +58,8 @@ public class DefaultMandrillService implements MandrillService {
 
   @Override
   public void sendMail(MandrillServiceMessage message) {
-
-    final MandrillMessage mandrillMessage = createMessage(message);
-
     try {
+      final MandrillMessage mandrillMessage = createMessage(message);
       this.mandrillApi.messages().sendTemplate(message.getTemplate(), null, mandrillMessage, false);
     } catch (MandrillApiError | IOException e) {
       throw new MandrillServiceException(e);
@@ -65,7 +68,7 @@ public class DefaultMandrillService implements MandrillService {
 
 
 
-  private MandrillMessage createMessage(MandrillServiceMessage message) {
+  private MandrillMessage createMessage(MandrillServiceMessage message) throws IOException {
     final MandrillMessage mandrillMessage = createDefaultMessage();
 
     mandrillMessage.setSubject(message.getSubject());
@@ -87,7 +90,28 @@ public class DefaultMandrillService implements MandrillService {
     }
 
     mandrillMessage.setGlobalMergeVars(createMergeVars(message.getReplacements()));
+    mandrillMessage.setAttachments(createAttachments(message.getAttachments()));
     return mandrillMessage;
+  }
+
+  private List<MessageContent> createAttachments(List<MandrillServiceAttachment> attachments)
+      throws IOException {
+    if (attachments == null)
+      return null;
+    final List<MessageContent> messageContentList = new ArrayList<MessageContent>();
+    for (final MandrillServiceAttachment attachment : attachments) {
+      messageContentList.add(createAttachment(attachment));
+    }
+    return messageContentList;
+  }
+
+  private MessageContent createAttachment(MandrillServiceAttachment attachment) throws IOException {
+    final MessageContent messageContent = new MessageContent();
+    messageContent.setBinary(true);
+    messageContent.setName(attachment.getName());
+    messageContent.setType(attachment.getType());
+    messageContent.setContent(Base64.encodeBase64String(Files.toByteArray(attachment.getFile())));
+    return messageContent;
   }
 
   private List<Recipient> createReceiver(MandrillServiceMessage message) {

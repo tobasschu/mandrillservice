@@ -13,8 +13,11 @@
  */
 package de.tschumacher.mandrillservice;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -29,6 +32,7 @@ import com.microtripit.mandrillapp.lutung.model.MandrillApiError;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
 
 import de.tschumacher.mandrillservice.configuration.MandrillServiceConfig;
+import de.tschumacher.mandrillservice.domain.MandrillServiceAttachment;
 import de.tschumacher.mandrillservice.domain.MandrillServiceMessage;
 
 
@@ -75,6 +79,26 @@ public class MandrillServiceTest {
     final MandrillServiceMessage message =
         MandrillServiceMessage.newBuilder().withEmail("email").withSubject("subject")
             .withTemplate("template").withReplacements(replacements).build();
+    this.service.sendMail(message);
+
+    Mockito.verify(this.messageApi, Mockito.times(1)).sendTemplate(Matchers.anyString(),
+        Matchers.anyMapOf(String.class, String.class), Matchers.any(MandrillMessage.class),
+        Matchers.anyBoolean());
+
+  }
+
+
+  @Test
+  public void sendMessageWithAttachmentsTest() throws MandrillApiError, IOException {
+
+    final List<MandrillServiceAttachment> attachments = new ArrayList<MandrillServiceAttachment>();
+
+    attachments.add(MandrillServiceAttachment.newBuilder()
+        .withFile(new File("src/test/resources/test.txt")).withName("filename").withType("Type")
+        .build());
+    final MandrillServiceMessage message =
+        MandrillServiceMessage.newBuilder().withEmail("email").withSubject("subject")
+            .withTemplate("template").withAttachments(attachments).build();
     this.service.sendMail(message);
 
     Mockito.verify(this.messageApi, Mockito.times(1)).sendTemplate(Matchers.anyString(),
