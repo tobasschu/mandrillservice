@@ -25,6 +25,8 @@ public class MandrillServiceMessage {
   private final String fromEmail;
   private final String fromName;
   private final List<MandrillServiceAttachment> attachments;
+  private final Map<String, String> headers;
+  private final List<Recipient> recipients;
 
   public List<String> getEmails() {
     return this.emails;
@@ -54,6 +56,14 @@ public class MandrillServiceMessage {
     return this.attachments;
   }
 
+  public Map<String, String> getHeaders() {
+    return this.headers;
+  }
+
+  public List<Recipient> getRecipients() {
+    return recipients;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -66,6 +76,8 @@ public class MandrillServiceMessage {
     this.fromEmail = builder.fromEmail;
     this.fromName = builder.fromName;
     this.attachments = builder.attachments;
+    this.headers = builder.headers;
+    this.recipients = builder.recipients;
   }
 
   public static class Builder {
@@ -77,6 +89,8 @@ public class MandrillServiceMessage {
     private String fromEmail;
     private String fromName;
     private List<MandrillServiceAttachment> attachments;
+    private Map<String, String> headers;
+    private List<Recipient> recipients;
 
     public Builder withEmail(String email) {
       this.emails = new ArrayList<String>();
@@ -116,6 +130,16 @@ public class MandrillServiceMessage {
 
     public Builder withAttachments(List<MandrillServiceAttachment> attachments) {
       this.attachments = attachments;
+      return this;
+    }
+
+    public Builder withHeaders(Map<String, String> headers) {
+      this.headers = headers;
+      return this;
+    }
+
+    public Builder withRecipients(List<Recipient> recipients) {
+      this.recipients = recipients;
       return this;
     }
 
