@@ -16,6 +16,7 @@ package de.tschumacher.mandrillservice;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +90,7 @@ public class DefaultMandrillService implements MandrillService {
       mandrillMessage.setFromName(message.getFromName());
     }
 
+    mandrillMessage.setHeaders(message.getHeaders());
     mandrillMessage.setGlobalMergeVars(createMergeVars(message.getReplacements()));
     mandrillMessage.setAttachments(createAttachments(message.getAttachments()));
     return mandrillMessage;
@@ -98,7 +100,7 @@ public class DefaultMandrillService implements MandrillService {
       throws IOException {
     if (attachments == null)
       return null;
-    final List<MessageContent> messageContentList = new ArrayList<MessageContent>();
+    final List<MessageContent> messageContentList = new ArrayList<>();
     for (final MandrillServiceAttachment attachment : attachments) {
       messageContentList.add(createAttachment(attachment));
     }
@@ -115,19 +117,36 @@ public class DefaultMandrillService implements MandrillService {
   }
 
   private List<Recipient> createReceiver(MandrillServiceMessage message) {
-    final List<Recipient> receiver = new ArrayList<Recipient>();
-    for (final String email : message.getEmails()) {
-      final Recipient recipient = new Recipient();
-      recipient.setEmail(email);
-      receiver.add(recipient);
+    final List<Recipient> receiver = new ArrayList<>();
+
+    List<de.tschumacher.mandrillservice.domain.Recipient> recipients = message.getRecipients();
+
+    if (recipients != null && !recipients.isEmpty()) {
+      recipients.forEach(recipient -> {
+        Recipient mandrillRecipient = new Recipient();
+
+        mandrillRecipient.setType(Recipient.Type.valueOf(recipient.getType().name()));
+        mandrillRecipient.setEmail(recipient.getEmail());
+        mandrillRecipient.setName(recipient.getName());
+
+        receiver.add(mandrillRecipient);
+      });
+    } else {
+      message.getEmails().forEach(emailAddress -> {
+        final Recipient recipient = new Recipient();
+        recipient.setEmail(emailAddress);
+        receiver.add(recipient);
+      });
     }
+
     return receiver;
+
   }
 
   private List<Recipient> createDebugReceiver() {
     final Recipient recipient = new Recipient();
     recipient.setEmail(this.config.getDebugMail());
-    return Arrays.asList(recipient);
+    return Collections.singletonList(recipient);
   }
 
 
@@ -135,7 +154,7 @@ public class DefaultMandrillService implements MandrillService {
     if (replacements == null)
       return null;
 
-    final List<MergeVar> mergeVars = new ArrayList<MergeVar>();
+    final List<MergeVar> mergeVars = new ArrayList<>();
     for (final String key : replacements.keySet()) {
       final MergeVar mergeVar = new MergeVar(key, replacements.get(key));
       mergeVars.add(mergeVar);
