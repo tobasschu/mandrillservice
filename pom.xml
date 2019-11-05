@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.tschumacher</groupId>
 	<artifactId>mandrillservice</artifactId>
-	<version>0.0.7-SNAPSHOT</version>
+	<version>0.0.7</version>
 	<packaging>jar</packaging>
 
 	<name>mandrillservice</name>
@@ -31,7 +31,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:tobasschu/mandrillservice.git</connection>
 		<url>https://github.com/tobasschu/mandrillservice.git</url>
-		<tag>master</tag>
+		<tag>mandrillservice-0.0.7</tag>
 	</scm>
 
 	<distributionManagement>
