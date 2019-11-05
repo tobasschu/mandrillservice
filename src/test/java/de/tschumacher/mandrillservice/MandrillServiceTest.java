@@ -92,8 +92,8 @@ public class MandrillServiceTest {
 
     MandrillMessage.Recipient firstRecipient = actualMandrillMessage.getTo().get(0);
 
-    Assert.assertEquals(firstRecipient.getEmail(), expectedEmailAddress);
-    Assert.assertEquals(firstRecipient.getType(), MandrillMessage.Recipient.Type.TO);
+    Assert.assertEquals(expectedEmailAddress, firstRecipient.getEmail());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, firstRecipient.getType());
     Assert.assertNull(firstRecipient.getName());
   }
 
@@ -126,15 +126,14 @@ public class MandrillServiceTest {
     );
 
     MandrillMessage actualMandrillMessage = captor.getValue();
-    Assert.assertEquals(actualMandrillMessage.getSubject(), "subject");
 
     Assert.assertEquals(1, actualMandrillMessage.getTo().size());
 
     MandrillMessage.Recipient firstRecipient = actualMandrillMessage.getTo().get(0);
 
-    Assert.assertEquals(firstRecipient.getEmail(), expectedEmailAddress);
-    Assert.assertEquals(firstRecipient.getName(), expectedName);
-    Assert.assertEquals(firstRecipient.getType(), MandrillMessage.Recipient.Type.TO);
+    Assert.assertEquals(expectedEmailAddress, firstRecipient.getEmail());
+    Assert.assertEquals(expectedName, firstRecipient.getName());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, firstRecipient.getType());
   }
 
   @Test
@@ -163,8 +162,8 @@ public class MandrillServiceTest {
     MandrillMessage actualMandrillMessage = captor.getValue();
     MandrillMessage.MergeVar mergeVar = actualMandrillMessage.getGlobalMergeVars().get(0);
 
-    Assert.assertEquals(mergeVar.getName(), expectedName);
-    Assert.assertEquals(mergeVar.getContent(), expectedContent);
+    Assert.assertEquals(expectedName, mergeVar.getName());
+    Assert.assertEquals(expectedContent, mergeVar.getContent());
   }
 
 
