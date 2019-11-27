@@ -27,6 +27,7 @@ public class MandrillServiceMessage {
   private final List<MandrillServiceAttachment> attachments;
   private final Map<String, String> headers;
   private final List<Recipient> recipients;
+  private final Boolean preserveRecipients;
 
   public List<String> getEmails() {
     return this.emails;
@@ -64,6 +65,10 @@ public class MandrillServiceMessage {
     return recipients;
   }
 
+  public Boolean getPreserveRecipients() {
+    return preserveRecipients;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -78,6 +83,7 @@ public class MandrillServiceMessage {
     this.attachments = builder.attachments;
     this.headers = builder.headers;
     this.recipients = builder.recipients;
+    this.preserveRecipients = builder.preserveRecipients;
   }
 
   public static class Builder {
@@ -91,6 +97,7 @@ public class MandrillServiceMessage {
     private List<MandrillServiceAttachment> attachments;
     private Map<String, String> headers;
     private List<Recipient> recipients;
+    private Boolean preserveRecipients;
 
     public Builder withEmail(String email) {
       this.emails = new ArrayList<String>();
@@ -140,6 +147,11 @@ public class MandrillServiceMessage {
 
     public Builder withRecipients(List<Recipient> recipients) {
       this.recipients = recipients;
+      return this;
+    }
+
+    public Builder withPreserveRecipients(Boolean preserveRecipients) {
+      this.preserveRecipients = preserveRecipients;
       return this;
     }
 

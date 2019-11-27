@@ -90,6 +90,7 @@ public class DefaultMandrillService implements MandrillService {
       mandrillMessage.setFromName(message.getFromName());
     }
 
+    mandrillMessage.setPreserveRecipients(message.getPreserveRecipients());
     mandrillMessage.setHeaders(message.getHeaders());
     mandrillMessage.setGlobalMergeVars(createMergeVars(message.getReplacements()));
     mandrillMessage.setAttachments(createAttachments(message.getAttachments()));
