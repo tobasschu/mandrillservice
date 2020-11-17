@@ -19,6 +19,7 @@ public class MandrillServiceConfig {
   private final String mandrillKey;
   private final boolean isDebug;
   private final String debugMail;
+  private final String debugRegex;
   private final String defaultFromMail;
   private final String defaultFromName;
 
@@ -32,6 +33,10 @@ public class MandrillServiceConfig {
 
   public String getDebugMail() {
     return debugMail;
+  }
+
+  public String getDebugRegex() {
+    return debugRegex;
   }
 
   public String getDefaultFromMail() {
@@ -50,6 +55,7 @@ public class MandrillServiceConfig {
     this.mandrillKey = builder.mandrillKey;
     this.isDebug = builder.isDebug;
     this.debugMail = builder.debugMail;
+    this.debugRegex = builder.debugRegex;
     this.defaultFromMail = builder.defaultFromMail;
     this.defaultFromName = builder.defaultFromName;
   }
@@ -59,6 +65,7 @@ public class MandrillServiceConfig {
     private String mandrillKey;
     private boolean isDebug;
     private String debugMail;
+    private String debugRegex;
     private String defaultFromMail;
     private String defaultFromName;
 
@@ -74,6 +81,11 @@ public class MandrillServiceConfig {
 
     public Builder withDebugMail(String debugMail) {
       this.debugMail = debugMail;
+      return this;
+    }
+
+    public Builder withDebugRegex(String debugRegex) {
+      this.debugRegex = debugRegex;
       return this;
     }
 
