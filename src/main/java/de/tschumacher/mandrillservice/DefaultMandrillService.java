@@ -15,10 +15,10 @@ package de.tschumacher.mandrillservice;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -73,14 +73,7 @@ public class DefaultMandrillService implements MandrillService {
     final MandrillMessage mandrillMessage = createDefaultMessage();
 
     mandrillMessage.setSubject(message.getSubject());
-
-    if (this.config.isDebug()) {
-      mandrillMessage.setTo(createDebugReceiver());
-    } else {
-      final List<Recipient> receiver = createReceiver(message);
-      mandrillMessage.setTo(receiver);
-    }
-
+    mandrillMessage.setTo(createRecipients(message));
 
     if (message.getFromEmail() != null) {
       mandrillMessage.setFromEmail(message.getFromEmail());
@@ -117,39 +110,107 @@ public class DefaultMandrillService implements MandrillService {
     return messageContent;
   }
 
-  private List<Recipient> createReceiver(MandrillServiceMessage message) {
-    final List<Recipient> receiver = new ArrayList<>();
+  private List<Recipient> createRecipients(MandrillServiceMessage message) {
+    if (this.config.isDebug()) {
+      return createDebugRecipients(message);
+    }
 
-    List<de.tschumacher.mandrillservice.domain.Recipient> recipients = message.getRecipients();
+    return createActualRecipients(message);
+  }
 
-    if (recipients != null && !recipients.isEmpty()) {
-      recipients.forEach(recipient -> {
+  private List<Recipient> createDebugRecipients(MandrillServiceMessage message) {
+    if (this.config.getDebugRegex() != null) {
+      return createDebugRecipientsWithDebugRegex(message);
+    } else {
+      return createDebugRecipient();
+    }
+  }
+
+  private List<Recipient> createDebugRecipientsWithDebugRegex(
+      MandrillServiceMessage message
+  ) {
+    List<de.tschumacher.mandrillservice.domain.Recipient> messageRecipients = message.getRecipients();
+
+    if (messageRecipients != null && !messageRecipients.isEmpty()) {
+      return createDebugRecipientsFromRecipients(messageRecipients);
+    } else {
+      return createDebugRecipientsFromEmails(message.getEmails());
+    }
+  }
+
+  private List<Recipient> createDebugRecipient() {
+    final Recipient recipient = new Recipient();
+    recipient.setEmail(this.config.getDebugMail());
+    return Collections.singletonList(recipient);
+  }
+
+  private List<Recipient> createDebugRecipientsFromRecipients(List<de.tschumacher.mandrillservice.domain.Recipient> recipients) {
+    return recipients.stream().map(recipient -> {
+      if (emailAddressMatchesDebugRegex(recipient.getEmail())) {
         Recipient mandrillRecipient = new Recipient();
 
         mandrillRecipient.setType(Recipient.Type.valueOf(recipient.getType().name()));
         mandrillRecipient.setEmail(recipient.getEmail());
         mandrillRecipient.setName(recipient.getName());
 
-        receiver.add(mandrillRecipient);
-      });
-    } else {
-      message.getEmails().forEach(emailAddress -> {
-        final Recipient recipient = new Recipient();
+        return mandrillRecipient;
+      } else {
+        Recipient mandrillRecipient = new Recipient();
+
+        mandrillRecipient.setType(Recipient.Type.valueOf(recipient.getType().name()));
+        mandrillRecipient.setEmail(this.config.getDebugMail());
+        mandrillRecipient.setName(recipient.getName());
+
+        return mandrillRecipient;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  private List<Recipient> createDebugRecipientsFromEmails(List<String> emailAddresses) {
+    return emailAddresses.stream().map(emailAddress -> {
+      Recipient recipient = new Recipient();
+      if (emailAddressMatchesDebugRegex(emailAddress)) {
         recipient.setEmail(emailAddress);
-        receiver.add(recipient);
-      });
+      } else {
+        recipient.setEmail(this.config.getDebugMail());
+      }
+      return recipient;
+    }).collect(Collectors.toList());
+  }
+
+  private boolean emailAddressMatchesDebugRegex(String emailAddress) {
+    return emailAddress.matches(this.config.getDebugRegex());
+  }
+
+  private List<Recipient> createActualRecipients(MandrillServiceMessage message) {
+    List<de.tschumacher.mandrillservice.domain.Recipient> messageRecipients = message.getRecipients();
+
+    if (messageRecipients != null && !messageRecipients.isEmpty()) {
+      return createRecipientsFromRecipients(messageRecipients);
+    } else {
+      return createRecipientsFromEmails(message.getEmails());
     }
-
-    return receiver;
-
   }
 
-  private List<Recipient> createDebugReceiver() {
-    final Recipient recipient = new Recipient();
-    recipient.setEmail(this.config.getDebugMail());
-    return Collections.singletonList(recipient);
+  private List<Recipient> createRecipientsFromEmails(List<String> emailAddresses) {
+    return emailAddresses.stream().map(emailAddress ->  {
+      final Recipient recipient = new Recipient();
+      recipient.setEmail(emailAddress);
+      return recipient;
+    }).collect(Collectors.toList());
   }
 
+  private List<Recipient> createRecipientsFromRecipients(List<de.tschumacher.mandrillservice.domain.Recipient> recipients) {
+    return recipients.stream().map(recipient -> {
+      Recipient mandrillRecipient = new Recipient();
+
+      mandrillRecipient.setType(Recipient.Type.valueOf(recipient.getType().name()));
+      mandrillRecipient.setEmail(recipient.getEmail());
+      mandrillRecipient.setName(recipient.getName());
+
+      return mandrillRecipient;
+    }).collect(Collectors.toList());
+  }
 
   private List<MergeVar> createMergeVars(final Map<String, String> replacements) {
     if (replacements == null)

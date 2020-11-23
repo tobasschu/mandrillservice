@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class MandrillServiceTest {
 
   @Before
   public void setUp() {
-    this.config = MandrillServiceConfig.newBuilder().build();
+    this.config = Mockito.mock(MandrillServiceConfig.class);
     this.messageApi = Mockito.mock(MandrillMessagesApi.class);
     this.api = Mockito.mock(MandrillApi.class);
     Mockito.when(this.api.messages()).thenReturn(this.messageApi);
@@ -143,6 +142,8 @@ public class MandrillServiceTest {
 
   @Test
   public void shouldUseRecipientsObjectForSenderIfDefined() throws IOException, MandrillApiError {
+    Mockito.when(this.config.isDebug()).thenReturn(false);
+
     String firstExpectedEmailAddress = "test+recipient1@example.com";
     String firstExpectedName = "Test Recipient 1";
     String secondExpectedEmailAddress = "test+recipient2@example.com";
@@ -191,6 +192,151 @@ public class MandrillServiceTest {
     Assert.assertEquals(secondExpectedEmailAddress, secondRecipient.getEmail());
     Assert.assertEquals(secondExpectedName, secondExpectedRecipient.getName());
     Assert.assertEquals(MandrillMessage.Recipient.Type.CC, secondRecipient.getType());
+  }
+
+  @Test
+  public void shouldUseDefinedRecipientsDebug() throws IOException, MandrillApiError {
+    Mockito.when(this.config.isDebug()).thenReturn(true);
+    Mockito.when(this.config.getDebugRegex()).thenReturn(".*@example.com|.*@google.com");
+    Mockito.when(this.config.getDebugMail()).thenReturn("debug@test.com");
+
+    String firstExpectedEmailAddress = "test+recipient1@example.com";
+    String firstExpectedName = "Test Recipient 1";
+    String secondExpectedEmailAddress = "test+recipient2@google.com";
+    String secondExpectedName = "Test Recipient 2";
+    String thirdExpectedEmailAddress = "test+recipient3@bing.com";
+    String thirdExpectedName = "Test Recipient 3";
+
+    Recipient firstExpectedRecipient = new Recipient();
+    firstExpectedRecipient.setEmail(firstExpectedEmailAddress);
+    firstExpectedRecipient.setName(firstExpectedName);
+    firstExpectedRecipient.setType(Recipient.Type.TO);
+
+    Recipient secondExpectedRecipient = new Recipient();
+    secondExpectedRecipient.setEmail(secondExpectedEmailAddress);
+    secondExpectedRecipient.setName(secondExpectedName);
+    secondExpectedRecipient.setType(Recipient.Type.CC);
+
+    Recipient thirdExpectedRecipient = new Recipient();
+    thirdExpectedRecipient.setEmail(thirdExpectedEmailAddress);
+    thirdExpectedRecipient.setName(thirdExpectedName);
+    thirdExpectedRecipient.setType(Recipient.Type.TO);
+
+    final MandrillServiceMessage message =
+        MandrillServiceMessage.newBuilder()
+            .withEmail("test+email@example.com")
+            .withRecipients(Arrays.asList(firstExpectedRecipient, secondExpectedRecipient, thirdExpectedRecipient))
+            .withSubject("subject")
+            .withTemplate("template")
+            .build();
+    this.service.sendMail(message);
+
+    ArgumentCaptor<MandrillMessage> captor = ArgumentCaptor.forClass(MandrillMessage.class);
+
+    Mockito.verify(this.messageApi, Mockito.times(1)).sendTemplate(
+        Matchers.eq("template"),
+        Matchers.anyMapOf(String.class, String.class),
+        captor.capture(),
+        Matchers.eq(false)
+    );
+
+    MandrillMessage actualMandrillMessage = captor.getValue();
+
+    Assert.assertEquals(3, actualMandrillMessage.getTo().size());
+
+    MandrillMessage.Recipient firstRecipient = actualMandrillMessage.getTo().get(0);
+
+    Assert.assertEquals(firstExpectedEmailAddress, firstRecipient.getEmail());
+    Assert.assertEquals(firstExpectedName, firstRecipient.getName());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, firstRecipient.getType());
+
+    MandrillMessage.Recipient secondRecipient = actualMandrillMessage.getTo().get(1);
+
+    Assert.assertEquals(secondExpectedEmailAddress, secondRecipient.getEmail());
+    Assert.assertEquals(secondExpectedName, secondExpectedRecipient.getName());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.CC, secondRecipient.getType());
+
+    MandrillMessage.Recipient thirdRecipient = actualMandrillMessage.getTo().get(2);
+
+    Assert.assertEquals("debug@test.com", thirdRecipient.getEmail());
+    Assert.assertEquals(thirdExpectedName, thirdRecipient.getName());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, thirdRecipient.getType());
+  }
+
+  @Test
+  public void shouldUseDefinedEmailsDebug() throws IOException, MandrillApiError {
+    Mockito.when(this.config.isDebug()).thenReturn(true);
+    Mockito.when(this.config.getDebugRegex()).thenReturn(".*@example.com|.*@google.com");
+    Mockito.when(this.config.getDebugMail()).thenReturn("debug@test.com");
+
+    String firstExpectedEmailAddress = "test+recipient1@example.com";
+    String secondExpectedEmailAddress = "test+recipient2@google.com";
+    String thirdExpectedEmailAddress = "test+recipient3@bing.com";
+
+    final MandrillServiceMessage message =
+        MandrillServiceMessage.newBuilder()
+            .withEmail("test+email@example.com")
+            .withEmails(Arrays.asList(firstExpectedEmailAddress, secondExpectedEmailAddress, thirdExpectedEmailAddress))
+            .withSubject("subject")
+            .withTemplate("template")
+            .build();
+    this.service.sendMail(message);
+
+    ArgumentCaptor<MandrillMessage> captor = ArgumentCaptor.forClass(MandrillMessage.class);
+
+    Mockito.verify(this.messageApi, Mockito.times(1)).sendTemplate(
+        Matchers.eq("template"),
+        Matchers.anyMapOf(String.class, String.class),
+        captor.capture(),
+        Matchers.eq(false)
+    );
+
+    MandrillMessage actualMandrillMessage = captor.getValue();
+
+    Assert.assertEquals(3, actualMandrillMessage.getTo().size());
+
+    MandrillMessage.Recipient firstRecipient = actualMandrillMessage.getTo().get(0);
+
+    Assert.assertEquals(firstExpectedEmailAddress, firstRecipient.getEmail());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, firstRecipient.getType());
+
+    MandrillMessage.Recipient secondRecipient = actualMandrillMessage.getTo().get(1);
+
+    Assert.assertEquals(secondExpectedEmailAddress, secondRecipient.getEmail());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, secondRecipient.getType());
+
+    MandrillMessage.Recipient thirdRecipient = actualMandrillMessage.getTo().get(2);
+
+    Assert.assertEquals("debug@test.com", thirdRecipient.getEmail());
+    Assert.assertEquals(MandrillMessage.Recipient.Type.TO, thirdRecipient.getType());
+  }
+
+  @Test
+  public void shouldUseDebugRecipient() throws MandrillApiError, IOException {
+    Mockito.when(this.config.isDebug()).thenReturn(true);
+    Mockito.when(this.config.getDebugMail()).thenReturn("debug@example.net");
+
+    final MandrillServiceMessage message =
+        MandrillServiceMessage.newBuilder()
+            .withEmail("email")
+            .withSubject("subject")
+            .withTemplate("template")
+            .build();
+    this.service.sendMail(message);
+
+    ArgumentCaptor<MandrillMessage> captor = ArgumentCaptor.forClass(MandrillMessage.class);
+
+    Mockito.verify(this.messageApi, Mockito.times(1)).sendTemplate(
+        Matchers.eq("template"),
+        Matchers.anyMapOf(String.class, String.class),
+        captor.capture(),
+        Matchers.eq(false)
+    );
+
+    MandrillMessage actualMandrillMessage = captor.getValue();
+    List<MandrillMessage.Recipient> recipients = actualMandrillMessage.getTo();
+    Assert.assertEquals(1, recipients.size());
+    Assert.assertEquals("debug@example.net", recipients.get(0).getEmail());
   }
 
   @Test
